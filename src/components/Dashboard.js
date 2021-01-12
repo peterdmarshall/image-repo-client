@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton';
 import Loading from './Loading';
@@ -6,12 +6,52 @@ import UploadImageButton from './UploadImageButton';
 import DeleteImageButton from './DeleteImageButton';
 import ViewImageButton from './ViewImageButton';
 import ImageTableRow from './ImageTableRow';
+import axios from 'axios';
+import Pagination from './Pagination';
 
 export default function Dashboard() {
 
-    const { isLoading } = useAuth0();
+    const { user, isLoading, getAccessTokenSilently } = useAuth0();
+    
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    // State for images list and pagination
+    const [images, setImages] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const [limit, setLimit] = useState(10);
+    const [offset, setOffset] = useState(0);
+    const [imageCount, setImageCount] = useState(null);
+
     const [checkedImages, setCheckedImages] = useState([]);
     const [numCheckedImages, setNumCheckedImages] = useState(0);
+
+    useEffect(() => {
+        (async () => {
+            const token = await getAccessTokenSilently();
+
+            // Request images from server
+            axios.get(process.env.REACT_APP_API_URL + '/images', {
+                params: {
+                    limit: limit,
+                    offset: offset
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then((response) => {
+                console.log(response);
+                setImages(response.data.images);
+                setImageCount(response.data.image_count);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+        })();
+      }, [user, limit, offset]);
+
+    useEffect(() => {
+        
+    }, [limit, offset]);
 
     const handleCheckButtonChange = (objectId) => {
         let index = checkedImages.indexOf(objectId);
@@ -38,8 +78,6 @@ export default function Dashboard() {
         timestamp: '2020-04-23',
         objectId: 'user/my-test-img'
     };
-
-    const images = [1, 2, 3, 4, 5, 6, 7, 8];
 
     return (
         <div class="flex h-screen overflow-y-hidden bg-white">
@@ -104,6 +142,7 @@ export default function Dashboard() {
                                                 View
                                             </span>
                                             </th>
+                                            
                                         </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
@@ -116,6 +155,7 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
+                    <Pagination offset={offset} limit={limit} imageCount={imageCount}/>
                 </main>
             </div>
             

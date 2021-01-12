@@ -44,6 +44,11 @@ const ImageTableRow = (props) => {
             <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                 <ViewImageButton objectId={image.objectId}/>
             </td>
+            <td>
+                <button>
+                    
+                </button>
+            </td>
         </tr>
     );
 };
