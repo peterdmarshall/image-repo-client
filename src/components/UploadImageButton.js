@@ -4,46 +4,16 @@ import ImageUploadPreview from './ImageUploadPreview';
 import axios from 'axios';
 
 
-const UploadImageButton = () => {
+const UploadImageButton = (props) => {
+
+  const { uploadImages } = props;
+
   const [showModal, setShowModal] = useState(false);
   const { user, getAccessTokenSilently } = useAuth0();
   const [accessToken, setAccessToken] = useState(null);
   const hiddenInput = useRef(null);
   const [files, setFiles] = useState([]);
 
-  useEffect(() => {
-    const token = getAccessTokenSilently();
-    if(token) {
-      setAccessToken(token);
-    }
-  }, [user]);
-
-  const uploadImages = () => {
-    // Loop through files
-    // 1. Request a signed url
-    // 2. Upload image to signed url using a PUT request
-    // 3. If successful, send a POST request to the rails server with the 
-    //    object ID, file name, file type, permission status, and timestamp
-    //    to confirm the upload
-    console.log(accessToken);
-    setShowModal(false);
-  }
-
-  const getSignedUrl = (file, callback) => {
-
-    const params = {
-      objectName: file.name,
-      contentType: file.type
-    };
-
-    axios.get(process.env.REACT_APP_API_URL + '/images/presigned-url', { params })
-      .then(data => {
-        callback(data);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }
 
   const hasFiles = ({ dataTransfer: { types = [] } }) => {
     return types.indexOf("Files") > -1
@@ -52,8 +22,11 @@ const UploadImageButton = () => {
   const dropHandler = (e) => {
     e.preventDefault();
     let newFiles = [];
+    let allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
     for(var i = 0; i < e.dataTransfer.files.length; i++) {
-      newFiles.push(e.dataTransfer.files[i]);
+      if(allowedTypes.includes(e.dataTransfer.files[i].type.split('/')[1])) {
+        newFiles.push(e.dataTransfer.files[i]);
+      }
     }
     
     setFiles([...files, ...newFiles]);
@@ -72,8 +45,11 @@ const UploadImageButton = () => {
 
   const handleFileChange = (e) => {
     let newFiles = [];
+    let allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
     for(var i = 0; i < e.target.files.length; i++) {
-      newFiles.push(e.target.files[i]);
+      if(allowedTypes.includes(e.target.files[i].type.split('/')[1])) {
+        newFiles.push(e.target.files[i]);
+      }
     }
     setFiles([...files, ...newFiles]);
   }
@@ -86,6 +62,12 @@ const UploadImageButton = () => {
 
   const cancelUpload = () => {
     setShowModal(false);
+    setFiles([]);
+  }
+
+  const handleUpload = () => {
+    setShowModal(false);
+    uploadImages(files);
     setFiles([]);
   }
 
@@ -132,7 +114,7 @@ const UploadImageButton = () => {
                 </section>
       
                 <footer class="flex justify-end px-8 pb-8 pt-4">
-                  <button onClick={uploadImages} class="rounded-md px-4 py-2 bg-green-400 hover:bg-green-700 text-white focus:shadow-outline focus:outline-none">
+                  <button onClick={handleUpload} class="rounded-md px-4 py-2 bg-green-400 hover:bg-green-700 text-white focus:shadow-outline focus:outline-none">
                     Upload Now
                   </button>
                   <button onClick={cancelUpload} class="ml-3 rounded-md px-4 py-2 hover:bg-gray-300 focus:shadow-outline focus:outline-none">

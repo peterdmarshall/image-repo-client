@@ -70,14 +70,78 @@ export default function Dashboard() {
         }
     }
 
-    const dummyImage = {
-        id: 1,
-        filename: 'my-test-img',
-        filetype: 'jpg',
-        private: false,
-        timestamp: '2020-04-23',
-        objectId: 'user/my-test-img'
-    };
+
+    // Takes an array of images and uploads them one at a time
+    // Step 1: GET request to api to retrieve signed URL
+    // Step 2: PUT request to signed URL to upload image to s3
+    // Step 3: POST request to api to confirm upload and create
+    //         image record
+    const uploadImages = async (files) => {
+        const token = await getAccessTokenSilently();
+
+        files.forEach((file) => {
+
+            // GET signed URL
+            // Strip the file extension from filename
+            var filename = file.name.split('.')[0];
+            var filetype = file.type.split('/')[1];
+
+            // Request images from server
+            axios.get(process.env.REACT_APP_API_URL + '/presigned-url', {
+                params: {
+                    filename: filename 
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then((response) => {
+                // Send a put request to upload the image to the signed URL
+                console.log(response);
+                const object_key = response.data.object_key;
+                axios.put(response.data.presigned_url, {
+                    body: file,
+                    headers: {
+                        Origin: `http://localhost:3000`
+                    }
+                })
+                .then((response) => {
+                    // Send a POST request to the server to create the image record
+                    console.log(response);
+
+                    const data = {
+                        image: {
+                            object_key: object_key,
+                            filename: filename,
+                            filetype: filetype,
+                            private: true
+                        }
+                    }
+
+                    axios.post(process.env.REACT_APP_API_URL + '/images', data, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    })
+                    .then((response) => {
+                        // Successfully created image object in Rails DB and stored in S3
+                        console.log(response);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+
+        });
+    }
 
     return (
         <div class="flex h-screen overflow-y-hidden bg-white">
@@ -102,7 +166,7 @@ export default function Dashboard() {
                         <div class="flex flex-row space-x-2"> 
                             <h4 class="py-2 px-4">{numCheckedImages} Selected</h4>
                             <DeleteImageButton />
-                            <UploadImageButton />
+                            <UploadImageButton uploadImages={uploadImages}/>
                         </div>
                     </div>
                     
@@ -147,7 +211,7 @@ export default function Dashboard() {
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             { images && images.map(image => {
-                                                return <ImageTableRow key={image.id} image={dummyImage} num={image} handleCheckButtonChange={handleCheckButtonChange}/>
+                                                return <ImageTableRow key={image.id} image={image} handleCheckButtonChange={handleCheckButtonChange}/>
                                             })}
                                         </tbody>
                                     </table>
@@ -155,7 +219,7 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <Pagination offset={offset} limit={limit} imageCount={imageCount}/>
+                    <Pagination offset={offset} setOffset={setOffset} limit={limit} imageCount={imageCount}/>
                 </main>
             </div>
             
