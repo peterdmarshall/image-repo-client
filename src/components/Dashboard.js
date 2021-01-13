@@ -25,6 +25,9 @@ export default function Dashboard() {
 
     const [updateFlag, setUpdateFlag] = useState(false);
 
+    const [filesToUpload, setFilesToUpload] = useState(0);
+    const [uploadedFiles, setUploadedFiles] = useState(false);
+
     useEffect(() => {
         (async () => {
             const token = await getAccessTokenSilently();
@@ -48,11 +51,8 @@ export default function Dashboard() {
                 console.log(error);
             })
         })();
-      }, [updateFlag, user, limit, offset]);
+      }, [updateFlag, uploadedFiles, user, limit, offset]);
 
-    useEffect(() => {
-        
-    }, [limit, offset]);
 
     const handleCheckButtonChange = (objectId) => {
         let index = checkedImages.indexOf(objectId);
@@ -71,6 +71,14 @@ export default function Dashboard() {
         }
     }
 
+    // Returns true if button is checked
+    const isChecked = (checkedImageId) => {
+        if(checkedImages.includes(checkedImageId)) {
+            return true;
+        }
+        return false;
+    }
+
 
     // Takes an array of images and uploads them one at a time
     // Step 1: GET request to api to retrieve signed URL
@@ -78,71 +86,64 @@ export default function Dashboard() {
     // Step 3: POST request to api to confirm upload and create
     //         image record
     const uploadImages = async (files) => {
+        setFilesToUpload(files.length);
+        setUploadedFiles(false);
         const token = await getAccessTokenSilently();
-
-        files.forEach((file) => {
+        
+        await Promise.all(files.map( async (file) => {
 
             // GET signed URL
             // Strip the file extension from filename
             var filename = file.name;
             var filetype = file.type;
 
-            // Request images from server
-            axios.get(process.env.REACT_APP_API_URL + '/presigned-url', {
-                params: {
-                    filename: filename
-                },
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-            .then((response) => {
-                // Send a put request to upload the image to the signed URL
-                console.log(response);
-                const object_key = response.data.object_key;
-                console.log(filetype);
-                console.log(filename);
-                axios({
-                    method: 'PUT',
-                    url: response.data.presigned_url,
-                    data: file
-                })
-                .then((response) => {
-                    // Send a POST request to the server to create the image record
-                    console.log(response);
-
-                    const data = {
-                        image: {
-                            object_key: object_key,
-                            filename: filename,
-                            filetype: filetype.split("/")[1],
-                            private: true
-                        }
+            try {
+                // Request presigned url from API
+                var signedUrlResponse = await axios.get(process.env.REACT_APP_API_URL + '/presigned-url', {
+                    params: {
+                        filename: filename
+                    },
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
+                })
 
-                    axios.post(process.env.REACT_APP_API_URL + '/images', data, {
+                const object_key = signedUrlResponse.data.object_key;
+                const url = signedUrlResponse.data.presigned_url;
+
+                // Upload image to s3
+                const uploadResponse = await axios({
+                    method: 'PUT',
+                    url: url,
+                    data: file,
+                });
+
+                console.log(uploadResponse);
+                // Format image record data for API
+                const data = {
+                    image: {
+                        object_key: object_key,
+                        filename: filename,
+                        filetype: filetype.split("/")[1],
+                        private: true
+                    }
+                }
+
+                if(uploadResponse) {
+                    // Post image record to API
+                    await axios.post(process.env.REACT_APP_API_URL + '/images', data, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
-                    })
-                    .then((response) => {
-                        // Successfully created image object in Rails DB and stored in S3
-                        console.log(response);
-                        setUpdateFlag(!updateFlag);
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
-
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-            })
-            .catch((error) => {
+                    });
+                }
+            } catch(error) {
                 console.log(error);
-            })
-        });
+            }
+        }));
+
+        setFilesToUpload(0);
+        setUploadedFiles(true);
     }
 
     return (
@@ -164,11 +165,11 @@ export default function Dashboard() {
                     </div>
 
                     <div class="flex items-center flex-row justify-between p-2">
-                        <h3 class="mt-6 text-xl py-2 px-4">My Images</h3>
-                        <div class="flex flex-row space-x-2"> 
+                        <h3 class="text-xl py-2 px-4">My Images</h3>
+                        <div class="flex flex-row space-x-2">
                             <h4 class="py-2 px-4">{numCheckedImages} Selected</h4>
-                            <DeleteImageButton />
-                            <UploadImageButton uploadImages={uploadImages}/>
+                            <DeleteImageButton selectedImageIds={checkedImages} setSelectedImageIds={setCheckedImages} setNumCheckedImages={setNumCheckedImages} updateFlag={updateFlag} setUpdateFlag={setUpdateFlag}/>
+                            <UploadImageButton uploadImages={uploadImages} filesToUpload={filesToUpload}/>
                         </div>
                     </div>
                     
@@ -213,7 +214,7 @@ export default function Dashboard() {
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             { images && images.map(image => {
-                                                return <ImageTableRow key={image.id} image={image} handleCheckButtonChange={handleCheckButtonChange}/>
+                                                return <ImageTableRow key={image.id} image={image} isChecked={isChecked(image.id)} handleCheckButtonChange={handleCheckButtonChange}/>
                                             })}
                                         </tbody>
                                     </table>

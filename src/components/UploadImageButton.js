@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import ImageUploadPreview from './ImageUploadPreview';
-import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
 
 const UploadImageButton = (props) => {
 
-  const { uploadImages } = props;
+  const { uploadImages, filesToUpload } = props;
 
   const [showModal, setShowModal] = useState(false);
   const { user, getAccessTokenSilently } = useAuth0();
@@ -65,7 +66,7 @@ const UploadImageButton = (props) => {
     setFiles([]);
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     setShowModal(false);
     uploadImages(files);
     setFiles([]);
@@ -73,12 +74,24 @@ const UploadImageButton = (props) => {
 
   return (
     <div>
+      { (filesToUpload === 0) && 
       <button 
-        class='bg-green-400 text-white border-2 border-green-400 font-bold py-2 px-4 rounded hover:bg-green-500 hover:border-green-900 hover:text-green-900'
+        class='bg-green-400 text-white border-2 border-green-400 font-bold py-2 px-4 rounded hover:bg-green-500 hover:border-green-900 hover:text-green-900 focus:outline-none'
         onClick={() => setShowModal(true)}
       >
         Upload
       </button>
+      }
+      { (filesToUpload > 0) && 
+        <button 
+          class='bg-green-500 text-white border-2 border-green-500 font-bold py-2 px-4 rounded focus:outline-none cursor-not-allowed'
+        >
+          <span class="mr-2">
+            <FontAwesomeIcon icon={faCircleNotch} size='1x' spin/>
+          </span>
+          Uploading
+        </button>
+      }
       { showModal &&
         <div>
           <div class="justify-center items-center flex overflow-x-hidden h-3/4 overflow-y-auto fixed inset-x-0 top-20 z-50 bg-gray-200 bg-opacity-60">
