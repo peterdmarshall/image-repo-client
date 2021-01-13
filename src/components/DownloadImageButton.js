@@ -11,7 +11,7 @@ const DownloadImageButton = (props) => {
         const token = await getAccessTokenSilently();
         
         // Send get request to api with s3 object key to get presigned download URL
-        axios.get(process.env.REACT_APP_API_URL + '/images/' + imageId, {
+        axios.get(process.env.REACT_APP_API_URL + '/api/v1/images/' + imageId, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
