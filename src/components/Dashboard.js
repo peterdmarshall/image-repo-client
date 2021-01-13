@@ -33,7 +33,7 @@ export default function Dashboard() {
             const token = await getAccessTokenSilently();
 
             // Request images from server
-            axios.get(process.env.REACT_APP_API_URL + '/images', {
+            axios.get(process.env.REACT_APP_API_URL + '/api/v1/images', {
                 params: {
                     limit: limit,
                     offset: offset
@@ -99,7 +99,7 @@ export default function Dashboard() {
 
             try {
                 // Request presigned url from API
-                var signedUrlResponse = await axios.get(process.env.REACT_APP_API_URL + '/presigned-url', {
+                var signedUrlResponse = await axios.get(process.env.REACT_APP_API_URL + '/api/v1/presigned-url', {
                     params: {
                         filename: filename
                     },
@@ -131,7 +131,7 @@ export default function Dashboard() {
 
                 if(uploadResponse) {
                     // Post image record to API
-                    await axios.post(process.env.REACT_APP_API_URL + '/images', data, {
+                    await axios.post(process.env.REACT_APP_API_URL + '/api/v1/images', data, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }

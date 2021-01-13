@@ -20,7 +20,7 @@ const DeleteImageButton = (props) => {
     selectedImageIds.forEach((id) => {
       // Send get request to api with s3 object key to get presigned download URL
 
-      promises.push(axios.delete(process.env.REACT_APP_API_URL + '/images/' + id, {
+      promises.push(axios.delete(process.env.REACT_APP_API_URL + '/api/v1/images/' + id, {
           headers: {
               Authorization: `Bearer ${token}`
           }
