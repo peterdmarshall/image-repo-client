@@ -4,7 +4,6 @@ import LogoutButton from './LogoutButton';
 import Loading from './Loading';
 import UploadImageButton from './UploadImageButton';
 import DeleteImageButton from './DeleteImageButton';
-import ViewImageButton from './ViewImageButton';
 import ImageTableRow from './ImageTableRow';
 import axios from 'axios';
 import Pagination from './Pagination';
@@ -16,13 +15,15 @@ export default function Dashboard() {
     const [uploadProgress, setUploadProgress] = useState(0);
 
     // State for images list and pagination
-    const [images, setImages] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const [images, setImages] = useState([]);
     const [limit, setLimit] = useState(10);
     const [offset, setOffset] = useState(0);
     const [imageCount, setImageCount] = useState(null);
 
     const [checkedImages, setCheckedImages] = useState([]);
     const [numCheckedImages, setNumCheckedImages] = useState(0);
+
+    const [updateFlag, setUpdateFlag] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -47,7 +48,7 @@ export default function Dashboard() {
                 console.log(error);
             })
         })();
-      }, [user, limit, offset]);
+      }, [updateFlag, user, limit, offset]);
 
     useEffect(() => {
         
@@ -83,13 +84,13 @@ export default function Dashboard() {
 
             // GET signed URL
             // Strip the file extension from filename
-            var filename = file.name.split('.')[0];
-            var filetype = file.type.split('/')[1];
+            var filename = file.name;
+            var filetype = file.type;
 
             // Request images from server
             axios.get(process.env.REACT_APP_API_URL + '/presigned-url', {
                 params: {
-                    filename: filename 
+                    filename: filename
                 },
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -99,11 +100,12 @@ export default function Dashboard() {
                 // Send a put request to upload the image to the signed URL
                 console.log(response);
                 const object_key = response.data.object_key;
-                axios.put(response.data.presigned_url, {
-                    body: file,
-                    headers: {
-                        Origin: `http://localhost:3000`
-                    }
+                console.log(filetype);
+                console.log(filename);
+                axios({
+                    method: 'PUT',
+                    url: response.data.presigned_url,
+                    data: file
                 })
                 .then((response) => {
                     // Send a POST request to the server to create the image record
@@ -113,7 +115,7 @@ export default function Dashboard() {
                         image: {
                             object_key: object_key,
                             filename: filename,
-                            filetype: filetype,
+                            filetype: filetype.split("/")[1],
                             private: true
                         }
                     }
@@ -126,6 +128,7 @@ export default function Dashboard() {
                     .then((response) => {
                         // Successfully created image object in Rails DB and stored in S3
                         console.log(response);
+                        setUpdateFlag(!updateFlag);
                     })
                     .catch((error) => {
                         console.log(error);
@@ -139,7 +142,6 @@ export default function Dashboard() {
             .catch((error) => {
                 console.log(error);
             })
-
         });
     }
 

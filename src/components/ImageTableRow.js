@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import ViewImageButton from './ViewImageButton';
+import DownloadImageButton from './DownloadImageButton';
 
 const ImageTableRow = (props) => {
 
     const { image, handleCheckButtonChange } = props;
   
+    const handleClick = () => {
+        console.log(image.object_key);
+    }
 
     return (
-        <tr class="transition-all hover:bg-gray-200 hover:shadow-lg">
+        <tr onClick={handleClick} class="transition-all hover:bg-gray-200 hover:shadow-lg cursor-pointer">
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="flex flex-col items-center">
-                        <input type="checkbox" onChange={() => handleCheckButtonChange(image.object_key)}></input>
+                        <input type="checkbox" onChange={() => handleCheckButtonChange(image.id)}></input>
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-700">{image.filename}</div>
@@ -42,7 +45,7 @@ const ImageTableRow = (props) => {
             </td>
             <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{image.created_at}</td>
             <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                <ViewImageButton objectKey={image.object_key}/>
+                <DownloadImageButton imageId={image.id}/>
             </td>
             <td>
                 <button>
