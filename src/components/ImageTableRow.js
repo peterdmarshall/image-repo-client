@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import DownloadImageButton from './DownloadImageButton';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import MoreOptionsButton from "./MoreOptionsButton";
 
 const ImageTableRow = (props) => {
 
@@ -37,16 +38,15 @@ const ImageTableRow = (props) => {
         if(e.target.id === "close") {
             setShowPreview(false);
             setImagePreviewUrl(null);
-        } else if (e.target.id === "copy-link") {
-            console.log("Copy");
         } else {
             setShowPreview(true);
             getImagePreview();
         }
     }
 
-    const copyUrlToClipboard = () => {
+    const copyUrlToClipboard = (e) => {
         // Create temporary textarea to use for clipboard copying
+        e.stopPropagation();
         const el = document.createElement('textarea');
         el.value = imagePreviewUrl;
         document.body.appendChild(el);
@@ -70,13 +70,15 @@ const ImageTableRow = (props) => {
         'December'];
 
         var date = new Date(datetime);
-        let month = date.getMonth();
-        let formattedMonth = months[month];
-        let day = date.getDate();
-        let formattedDay = ("0" + day).slice(-2);
+        let formattedMonth = months[date.getMonth()];
+        let formattedDay = ("0" + date.getDate()).slice(-2);
         let year = date.getFullYear();
 
         return `${formattedMonth} ${formattedDay}, ${year}`
+    }
+
+    const handleCheckButtonClick = (e) => {
+        e.stopPropagation();
     }
 
     return (
@@ -84,7 +86,7 @@ const ImageTableRow = (props) => {
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="flex flex-col items-center">
-                        <input type="checkbox" checked={isChecked} onChange={() => handleCheckButtonChange(image.id)}></input>
+                        <input type="checkbox" checked={isChecked} onClick={handleCheckButtonClick} onChange={() => handleCheckButtonChange(image.id)}></input>
                     </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-700">{image.filename}</div>
@@ -112,9 +114,11 @@ const ImageTableRow = (props) => {
                 }
                 
             </td>
-            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{image.created_at}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formattedDate(image.created_at)}</td>
             <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                <DownloadImageButton imageId={image.id} />
+                <div class="flex flex-row justify-end">
+                    <DownloadImageButton imageId={image.id} />
+                </div>
             </td>
             { showPreview &&
                 <div>
@@ -138,9 +142,9 @@ const ImageTableRow = (props) => {
                             <footer class="flex justify-end px-8 pb-8 pt-4">
                                 { image.public &&
                                 <CopyToClipboard text={imagePreviewUrl}>
-                                    <button id="copy-link" onClick={handleClick} class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-2 px-4 mr-2 rounded items-center focus:outline-none hover:border-indigo-800'>
+                                    <button id="copy-link" onClick={copyUrlToClipboard} class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-2 px-4 mr-2 rounded items-center focus:outline-none hover:border-indigo-800'>
                                         <div class="flex flex-row items-center">
-                                        <svg class="mr-2 stroke-current text-indigo-700" xmlns="http://www.w3.org/2000/svg" width="20" height="30" viewBox="0 0 24 24" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
+                                        <svg class="mr-2 stroke-current text-indigo-700" xmlns="http://www.w3.org/2000/svg" width="20" height="30" viewBox="0 0 24 24" stroke="#000000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
                                         <p>
                                             Share
                                         </p>
