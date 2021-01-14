@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const DownloadImageButton = (props) => {
   
-    const { imageId } = props;
+    const { imageId, withText } = props;
     const { getAccessTokenSilently } = useAuth0();
 
     const downloadImage = async () => {
@@ -49,7 +49,14 @@ const DownloadImageButton = (props) => {
 
     return (
         <button class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-1 px-1 rounded items-center focus:outline-none hover:border-indigo-800' onClick={downloadImage}>
+            <div class="flex flex-row items-center">
             <svg class="w-5 h-5 fill-current text-indigo-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+            { withText && 
+                <p class="ml-2">
+                    Download
+                </p>
+            }
+            </div>
         </button>
     );
 };
