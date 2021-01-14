@@ -146,6 +146,35 @@ export default function Dashboard() {
         setUploadedFiles(true);
     }
 
+    const updatePermissions = async (image) => {
+        console.log(image);
+        
+        let data = {
+            image: {
+                object_key: image.object_key,
+                filename: image.filename,
+                filetype: image.filetype,
+                private: !image.private
+            }
+        }
+
+        const token = await getAccessTokenSilently();
+
+        // Send get request to api with s3 object key to get presigned download URL
+        axios.patch(process.env.REACT_APP_API_URL + '/api/v1/images/' + image.id, data, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then((response) => {
+            // If successful, trigger UI update
+            setUpdateFlag(!updateFlag);
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+    }
+
     return (
         <div class="flex h-screen overflow-y-hidden bg-white">
             <div class="flex flex-col flex-1 h-full overflow-hidden">
@@ -214,7 +243,7 @@ export default function Dashboard() {
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             { images && images.map(image => {
-                                                return <ImageTableRow key={image.id} image={image} isChecked={isChecked(image.id)} handleCheckButtonChange={handleCheckButtonChange}/>
+                                                return <ImageTableRow key={image.id} image={image} isChecked={isChecked(image.id)} handleCheckButtonChange={handleCheckButtonChange} updatePermissions={updatePermissions}/>
                                             })}
                                         </tbody>
                                     </table>

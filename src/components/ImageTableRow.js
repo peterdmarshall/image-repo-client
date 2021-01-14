@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import DownloadImageButton from './DownloadImageButton';
@@ -7,11 +7,17 @@ import MoreOptionsButton from "./MoreOptionsButton";
 
 const ImageTableRow = (props) => {
 
-    const { image, handleCheckButtonChange, isChecked } = props;
+    const { image, handleCheckButtonChange, isChecked, updatePermissions } = props;
     const { getAccessTokenSilently } = useAuth0();
 
     const [showPreview, setShowPreview] = useState(false);
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+
+    const [updatingPermissions, setUpdatingPermissions] = useState(false)
+
+    useEffect(() => {
+        getImagePreview();
+    }, [image.private]);
 
     const getImagePreview = async () => {
         const token = await getAccessTokenSilently();
@@ -37,22 +43,12 @@ const ImageTableRow = (props) => {
         e.preventDefault();
         if(e.target.id === "close") {
             setShowPreview(false);
-            setImagePreviewUrl(null);
         } else {
             setShowPreview(true);
-            getImagePreview();
+            if(imagePreviewUrl === null) {
+                getImagePreview();
+            }
         }
-    }
-
-    const copyUrlToClipboard = (e) => {
-        // Create temporary textarea to use for clipboard copying
-        e.stopPropagation();
-        const el = document.createElement('textarea');
-        el.value = imagePreviewUrl;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
     }
 
     const formattedDate = (datetime) => {
@@ -81,6 +77,13 @@ const ImageTableRow = (props) => {
         e.stopPropagation();
     }
 
+    const updatePermissionsSetting = (e) => {
+        e.stopPropagation();
+        console.log(image.private);
+        setUpdatingPermissions(true);
+        updatePermissions(image);
+    }
+
     return (
         <tr onClick={handleClick} class="transition-all hover:bg-gray-200 hover:shadow-lg cursor-pointer">
             <td class="px-6 py-4 whitespace-nowrap">
@@ -98,15 +101,15 @@ const ImageTableRow = (props) => {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 { image.private ? (
-                    <span
-                    class="inline-flex px-2 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 rounded-full capitalize"
+                    <span onClick={updatePermissionsSetting}
+                    class="inline-flex px-2 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 rounded-full capitalize hover:bg-indigo-300"
                     >
                     Private
                     </span>
                 ) :
                 (
-                    <span
-                    class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full capitalize"
+                    <span onClick={updatePermissionsSetting}
+                    class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full capitalize hover:bg-green-300"
                     >
                     Public
                     </span>
@@ -140,9 +143,9 @@ const ImageTableRow = (props) => {
                             </section>
                 
                             <footer class="flex justify-end px-8 pb-8 pt-4">
-                                { image.public &&
+                                { !image.private &&
                                 <CopyToClipboard text={imagePreviewUrl}>
-                                    <button id="copy-link" onClick={copyUrlToClipboard} class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-2 px-4 mr-2 rounded items-center focus:outline-none hover:border-indigo-800'>
+                                    <button id="copy-link" class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-2 px-4 mr-2 rounded items-center focus:outline-none hover:border-indigo-800'>
                                         <div class="flex flex-row items-center">
                                         <svg class="mr-2 stroke-current text-indigo-700" xmlns="http://www.w3.org/2000/svg" width="20" height="30" viewBox="0 0 24 24" stroke="#000000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
                                         <p>
