@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import DownloadImageButton from './DownloadImageButton';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const ImageTableRow = (props) => {
 
@@ -36,10 +37,22 @@ const ImageTableRow = (props) => {
         if(e.target.id === "close") {
             setShowPreview(false);
             setImagePreviewUrl(null);
+        } else if (e.target.id === "copy-link") {
+            console.log("Copy");
         } else {
             setShowPreview(true);
             getImagePreview();
         }
+    }
+
+    const copyUrlToClipboard = () => {
+        // Create temporary textarea to use for clipboard copying
+        const el = document.createElement('textarea');
+        el.value = imagePreviewUrl;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
     }
 
     const formattedDate = (datetime) => {
@@ -118,13 +131,25 @@ const ImageTableRow = (props) => {
                             </header>
                             <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
                             <ul class="flex flex-1 justify-center">
-                                <img src={imagePreviewUrl} class="object-contain md:object-scale-down"></img>
+                                <img src={imagePreviewUrl} alt={image.filename} class="object-contain md:object-scale-down"></img>
                             </ul>
                             </section>
                 
                             <footer class="flex justify-end px-8 pb-8 pt-4">
+                                { image.public &&
+                                <CopyToClipboard text={imagePreviewUrl}>
+                                    <button id="copy-link" onClick={handleClick} class='text-indigo-600 color-indigo-600 border-2 border-white hover:text-indigo-900 font-bold py-2 px-4 mr-2 rounded items-center focus:outline-none hover:border-indigo-800'>
+                                        <div class="flex flex-row items-center">
+                                        <svg class="mr-2 stroke-current text-indigo-700" xmlns="http://www.w3.org/2000/svg" width="20" height="30" viewBox="0 0 24 24" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><g fill="none" fill-rule="evenodd"><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8"/></g></svg>
+                                        <p>
+                                            Share
+                                        </p>
+                                        </div>
+                                    </button>
+                                </CopyToClipboard>
+                                }
                                 <DownloadImageButton imageId={image.id} withText={true}/>
-                                <button id="close" onClick={handleClick} class="ml-3 rounded-md px-4 py-2 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
+                                <button id="close" onClick={handleClick} class="ml-2 rounded-md px-4 py-2 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
                                     Close
                                 </button>
                             </footer>
