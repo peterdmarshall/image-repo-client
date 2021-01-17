@@ -92,6 +92,9 @@ const ImageTableRow = (props) => {
                     <div class="flex flex-col items-center">
                         <input type="checkbox" checked={isChecked} onClick={handleCheckButtonClick} onChange={() => handleCheckButtonChange(image.id)}></input>
                     </div>
+                    <div class="flex flex-col items-center h-16 w-20 ml-4 justify-center">
+                        <img src={imagePreviewUrl} alt={image.filename} class="object-contain md:object-scale-down rounded px-1"></img>
+                    </div>
                     <div class="ml-4">
                         <div class="text-sm font-medium text-gray-700">{image.filename}</div>
                     </div>
