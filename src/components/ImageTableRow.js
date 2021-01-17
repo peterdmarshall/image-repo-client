@@ -4,10 +4,11 @@ import axios from 'axios';
 import DownloadImageButton from './DownloadImageButton';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import MoreOptionsButton from "./MoreOptionsButton";
+import DeleteImageButton from './DeleteImageButton';
 
 const ImageTableRow = (props) => {
 
-    const { image, handleCheckButtonChange, isChecked, updatePermissions } = props;
+    const { image, handleCheckButtonChange, isChecked, updatePermissions, updateFlag, setUpdateFlag } = props;
     const { getAccessTokenSilently } = useAuth0();
 
     const [showPreview, setShowPreview] = useState(false);
@@ -155,6 +156,7 @@ const ImageTableRow = (props) => {
                                     </button>
                                 </CopyToClipboard>
                                 }
+                                <DeleteImageButton imageId={image.id} updateFlag={updateFlag} setUpdateFlag={setUpdateFlag}/>
                                 <DownloadImageButton imageId={image.id} withText={true}/>
                                 <button id="close" onClick={handleClick} class="ml-2 rounded-md px-4 py-2 hover:bg-gray-300 focus:shadow-outline focus:outline-none">
                                     Close

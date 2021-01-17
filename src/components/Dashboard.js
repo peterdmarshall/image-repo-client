@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton';
 import Loading from './Loading';
 import UploadImageButton from './UploadImageButton';
-import DeleteImageButton from './DeleteImageButton';
+import DeleteManyImageButton from './DeleteManyImageButton';
 import ImageTableRow from './ImageTableRow';
 import axios from 'axios';
 import Pagination from './Pagination';
@@ -176,7 +176,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div class="flex h-screen overflow-y-hidden bg-white">
+        <div class="container flex h-screen overflow-y-hidden bg-white mx-auto">
             <div class="flex flex-col flex-1 h-full overflow-hidden">
                 <header class="flex-shrink-0 border-b">
                     <div class="flex items-center justify-between p-2">
@@ -197,7 +197,7 @@ export default function Dashboard() {
                         <h3 class="text-xl py-2 px-4">My Images</h3>
                         <div class="flex flex-row space-x-2">
                             <h4 class="py-2 px-4">{numCheckedImages} Selected</h4>
-                            <DeleteImageButton selectedImageIds={checkedImages} setSelectedImageIds={setCheckedImages} setNumCheckedImages={setNumCheckedImages} updateFlag={updateFlag} setUpdateFlag={setUpdateFlag}/>
+                            <DeleteManyImageButton selectedImageIds={checkedImages} setSelectedImageIds={setCheckedImages} setNumCheckedImages={setNumCheckedImages} updateFlag={updateFlag} setUpdateFlag={setUpdateFlag}/>
                             <UploadImageButton uploadImages={uploadImages} filesToUpload={filesToUpload}/>
                         </div>
                     </div>
@@ -243,7 +243,7 @@ export default function Dashboard() {
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             { images && images.map(image => {
-                                                return <ImageTableRow key={image.id} image={image} isChecked={isChecked(image.id)} handleCheckButtonChange={handleCheckButtonChange} updatePermissions={updatePermissions}/>
+                                                return <ImageTableRow key={image.id} image={image} isChecked={isChecked(image.id)} handleCheckButtonChange={handleCheckButtonChange} updatePermissions={updatePermissions} updateFlag={updateFlag} setUpdateFlag={setUpdateFlag}/>
                                             })}
                                         </tbody>
                                     </table>
