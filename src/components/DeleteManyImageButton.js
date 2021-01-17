@@ -14,29 +14,24 @@ const DeleteManyImageButton = (props) => {
     console.log(selectedImageIds);
     const token = await getAccessTokenSilently();
 
-    // Store axios promises
-    var promises = [];
-    
-    selectedImageIds.forEach((id) => {
-      // Send get request to api with s3 object key to get presigned download URL
+    var data = {
+      image_ids: selectedImageIds
+    }
 
-      promises.push(axios.delete(process.env.REACT_APP_API_URL + '/api/v1/images/' + id, {
-          headers: {
-              Authorization: `Bearer ${token}`
-          }
-      }));
-    });
-
-    Promise.all(promises).then((results) => {
-      // Successfully deleted all images byt id
+    axios.post(process.env.REACT_APP_API_URL + '/api/v1/batch/delete-images', data, {
+      headers: {
+          Authorization: `Bearer ${token}`
+      }
+    })
+    .then((response) => {
+      // Successfully deleted all images by id
+      console.log(response);
       setUpdateFlag(!updateFlag);
       setDeleting(false);
     })
-    .catch((errors) => {
-      errors.forEach((error) => {
-        console.log(error);
-      })
-    })
+    .catch((error) => {
+      console.log(error);
+    });
   }
 
   const handleDelete = async () => {
